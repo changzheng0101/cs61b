@@ -3,6 +3,7 @@ public class ArrayDeque<T> {
     private T[] items;
     private int size;
     private final double maxLoadFactor = 0.75;
+    private final double minLoadFactor = 0.25;
     private int nextFirst;
     private int nextLast;
 
@@ -15,7 +16,7 @@ public class ArrayDeque<T> {
 
     public void addFirst(T item) {
         if ((size + 1.0) / items.length >= maxLoadFactor) {
-            resize();
+            resize(items.length * 2);
         }
         items[nextFirst] = item;
         nextFirst = (nextFirst - 1 + items.length) % items.length;
@@ -24,7 +25,7 @@ public class ArrayDeque<T> {
 
     public void addLast(T item) {
         if ((size + 1.0) / items.length >= maxLoadFactor) {
-            resize();
+            resize(items.length * 2);
         }
         items[nextLast] = item;
         nextLast = (nextLast + 1) % items.length;
@@ -54,6 +55,9 @@ public class ArrayDeque<T> {
         items[firstItemIndex] = null;
         nextFirst = firstItemIndex;
         size--;
+        if ((size + 0.0) / items.length <= minLoadFactor && items.length >= 16) {
+            resize(items.length / 2);
+        }
         return firstItem;
     }
 
@@ -66,6 +70,9 @@ public class ArrayDeque<T> {
         items[lastItemIndex] = null;
         nextLast = lastItemIndex;
         size--;
+        if ((size + 0.0) / items.length <= minLoadFactor && items.length >= 16) {
+            resize(items.length / 2);
+        }
         return lastItem;
     }
 
@@ -73,14 +80,13 @@ public class ArrayDeque<T> {
         return items[(nextFirst + 1 + index) % items.length];
     }
 
-    private void resize() {
-        int newSize = items.length * 2;
+    private void resize(int newSize) {
         T[] newItems = (T[]) new Object[newSize];
         int newNextFirst = 0;
         int newNextLast = 1;
         for (int i = 0; i < size; i++) {
-            newItems[newNextFirst] = get(i);
-            newNextFirst = (newNextFirst - 1 + newSize) % newSize;
+            newItems[newNextLast] = get(i);
+            newNextLast = (newNextLast + 1) % newSize;
         }
         // update current state
         this.items = newItems;
